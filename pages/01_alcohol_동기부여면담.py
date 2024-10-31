@@ -1,5 +1,5 @@
 import streamlit as st
-from alcohol_motivational_TTM import MITherapist
+from alcohol_motivational import MITherapist
 import os
 
 # Initialize session states
