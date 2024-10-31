@@ -43,7 +43,7 @@ def main():
     st.sidebar.title("버전 선택")
     version_descriptions_TTM = {
         1: "V1",
-        2: "V2"
+        2: "V2(최신버전)"
     }
     selected_version_TTM = st.sidebar.radio(
         "테스트할 버전을 선택하세요:",
