@@ -40,7 +40,7 @@ def main():
         version_descriptions = {
             1: "V1",
             2: "V2",
-            3: "V3",
+            3: "V3"
         }
         selected_version = st.sidebar.radio(
             "테스트할 버전을 선택하세요:",
