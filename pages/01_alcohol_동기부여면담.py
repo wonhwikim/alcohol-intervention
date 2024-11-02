@@ -10,7 +10,7 @@ if "therapist" not in st.session_state:
     st.session_state.therapist = None
 
 if "current_version" not in st.session_state:
-    st.session_state.current_version = 2  # Default to version 2
+    st.session_state.current_version = 1  # Default to version 1
 
 # Add to session state initialization section:
 if "stage" not in st.session_state:
@@ -39,7 +39,8 @@ def main():
         st.sidebar.title("버전 선택")
         version_descriptions = {
             1: "V1",
-            2: "V2"
+            2: "V2",
+            3: "V3",
         }
         selected_version = st.sidebar.radio(
             "테스트할 버전을 선택하세요:",
@@ -79,7 +80,7 @@ def main():
         # Just display the current version and stage when session is started
         st.sidebar.title("현재 설정")
         st.sidebar.text(
-            f"버전: {'V1' if st.session_state.current_version == 1 else 'V2'}")
+            f"버전: {'V1' if st.session_state.current_version == 1 else 'V2' if st.session_state.current_version == 2 else 'V3'}")
         stage_names = {1: "고려전", 2: "고려", 3: "준비", 4: "실천", 5: "유지", 6: "종결"}
         st.sidebar.text(f"변화단계: {stage_names[st.session_state.stage]}")
 
