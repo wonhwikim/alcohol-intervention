@@ -4,11 +4,11 @@ import streamlit as st
 
 from src.chatbots import MIChatbot
 
-st.set_page_config(
-    page_title="MI Chatbot",
-    page_icon="🤝",
-    initial_sidebar_state="expanded",
-)
+# st.set_page_config(
+#     page_title="MI Chatbot",
+#     page_icon="🤝",
+#     initial_sidebar_state="expanded",
+# )
 
 # Initialize session states
 if "messages" not in st.session_state:
@@ -121,7 +121,7 @@ def main():
         )
 
     # Main area
-    st.title("🤝 알코올 중독 동기부여 상담 챗봇")
+    st.title("🤝 음주 문제 동기부여 상담 챗봇")
     st.markdown(
         "> 이 챗봇은 동기부여면담(Motivational Interviewing) 기법을 사용하여 당신의 변화를 돕습니다."
     )

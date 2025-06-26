@@ -2,11 +2,11 @@ import streamlit as st
 
 from src.chatbots import TTMChatbot
 
-st.set_page_config(
-    page_title="TTM Chatbot",
-    page_icon="⛰️",
-    initial_sidebar_state="expanded",
-)
+# st.set_page_config(
+#     page_title="TTM Chatbot",
+#     page_icon="⛰️",
+#     initial_sidebar_state="expanded",
+# )
 
 # Initialize session states
 if "messages_TTM" not in st.session_state:
@@ -30,7 +30,7 @@ def initialize_TTM_chatbot(prompt_version: int) -> None:
 
     # Add initial message from TTM_chatbot if not present
     if not st.session_state.messages_TTM:
-        initial_message = "안녕하세요, 저는 오늘 당신의 음주 행동 변화에 대해 대화해보고자 합니다. 현재 음주가 걱정되거나, 변화가 필요하다고 생각하시나요?"
+        initial_message = "안녕하세요, 저는 오늘 당신의 음주 습관에 대해 이야기해보고자 합니다. 현재의 음주 습관이 걱정되거나, 변화가 필요하다고 생각하시나요?"
         st.session_state.messages_TTM.append(
             {"role": "assistant", "content": initial_message}
         )
@@ -64,7 +64,6 @@ def main():
     if not st.session_state.session_started_TTM:
         # Prompt version selection
         st.sidebar.title("TTM 프롬프트 버전 선택")
-        st.sidebar.markdown("---")
 
         # Prompt version selector
         selected_version_TTM = st.sidebar.radio(
@@ -116,7 +115,6 @@ def main():
     if prompt:
         # Add user message to chat history
         st.session_state.messages_TTM.append({"role": "user", "content": prompt})
-        print(st.session_state.messages_TTM)
         with st.chat_message("user"):
             st.markdown(prompt)
 
