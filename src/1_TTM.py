@@ -60,6 +60,12 @@ def parse_stage(response: str) -> str:
 
 
 def main():
+    # Main area
+    st.title("⛰️ 변화단계평가 챗봇")
+    st.markdown(
+        "> 이 챗봇은 범이론적 모형(Transtheoretical Model)에 기반한 변화단계 평가를 수행합니다."
+    )
+
     # Add version selector in sidebar
     if not st.session_state.session_started_TTM:
         # Prompt version selection
@@ -83,6 +89,7 @@ def main():
         # Start session button
         if st.sidebar.button("대화 시작"):
             st.session_state.session_started_TTM = True
+            st.session_state.messages_TTM = []
             initialize_TTM_chatbot(prompt_version=st.session_state.current_version_TTM)
 
             st.rerun()
@@ -92,14 +99,9 @@ def main():
             f"현재 프롬프트 버전: {TTM_VERSION_DICT[st.session_state.current_version_TTM]}"
         )
 
-    # Main area
-    st.title("⛰️ 변화단계평가 챗봇")
-    st.markdown(
-        "> 이 챗봇은 범이론적 모형(Transtheoretical Model)에 기반한 변화단계 평가를 수행합니다."
-    )
-
     # Initialize TTM chatbot if needed
     if st.session_state.TTM_chatbot is None and st.session_state.session_started_TTM:
+        st.session_state.messages_TTM = []
         initialize_TTM_chatbot(prompt_version=st.session_state.current_version_TTM)
 
     # Display chat messages_TTM
@@ -115,6 +117,11 @@ def main():
     prompt = st.chat_input(
         "메시지를 입력하세요...", disabled=not st.session_state.session_started_TTM
     )
+
+    if not st.session_state.session_started_TTM:
+        st.info(
+            "💡 메시지를 입력하기 전에 좌측 사이드바에서 프롬프트 버전을 선택하세요."
+        )
 
     if prompt:
         # Add user message to chat history
