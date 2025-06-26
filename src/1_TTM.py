@@ -2,11 +2,11 @@ import streamlit as st
 
 from src.chatbots import TTMChatbot
 
-# st.set_page_config(
-#     page_title="TTM Chatbot",
-#     page_icon="⛰️",
-#     initial_sidebar_state="expanded",
-# )
+st.set_page_config(
+    # page_title="TTM Chatbot",
+    # page_icon="⛰️",
+    initial_sidebar_state="expanded",
+)
 
 # Initialize session states
 if "messages_TTM" not in st.session_state:
