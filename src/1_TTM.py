@@ -95,7 +95,7 @@ def main():
     # Main area
     st.title("⛰️ 변화단계평가 챗봇")
     st.markdown(
-        "> 이 챗봇은 범이론적 모형 (Transtheoretical Model)에 기반한 변화단계평가를 수행합니다."
+        "> 이 챗봇은 범이론적 모형(Transtheoretical Model)에 기반한 변화단계 평가를 수행합니다."
     )
 
     # Initialize TTM chatbot if needed
@@ -106,6 +106,10 @@ def main():
     for message in st.session_state.messages_TTM:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+
+            stage = parse_stage(message["content"])
+            if stage != "평가 불가":
+                st.success(f"📊 평가된 변화단계: {stage}")
 
     # chat_input 비활성화 제어
     prompt = st.chat_input(
@@ -130,6 +134,8 @@ def main():
             stage = parse_stage(response)
             if stage != "평가 불가":
                 st.success(f"📊 평가된 변화단계: {stage}")
+                st.session_state.session_started_TTM = False
+                st.rerun()
 
     # Reset button
     if st.button("대화 초기화"):
