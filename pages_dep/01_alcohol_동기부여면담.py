@@ -1,6 +1,8 @@
-import streamlit as st
-from alcohol_motivational import MITherapist
 import os
+
+import streamlit as st
+
+from alcohol_motivational import MITherapist
 
 # Initialize session states
 if "messages" not in st.session_state:
@@ -24,12 +26,14 @@ def initialize_therapist(version):
     """Initialize the MI therapist with OpenAI API key and version"""
     openai_api_key = st.secrets["OPENAI_API_KEY"]
     st.session_state.therapist = MITherapist(
-        openai_api_key=openai_api_key, version=version)
+        openai_api_key=openai_api_key, version=version
+    )
     # Add initial message from therapist
     if not st.session_state.messages:
         initial_message = "안녕하세요, 저는 당신의 동기부여 상담사입니다. 오늘 어떤 이야기를 나누고 싶으신가요?"
         st.session_state.messages.append(
-            {"role": "assistant", "content": initial_message})
+            {"role": "assistant", "content": initial_message}
+        )
 
 
 # Replace the main version and stage selection section with:
@@ -37,17 +41,12 @@ def main():
     # Always get current version, but only allow changes before session starts
     if not st.session_state.session_started:
         st.sidebar.title("버전 선택")
-        version_descriptions = {
-            1: "V1",
-            2: "V2",
-            3: "V3",
-            4: "V4(최신 버전)"
-        }
+        version_descriptions = {1: "V1", 2: "V2", 3: "V3", 4: "V4(최신 버전)"}
         selected_version = st.sidebar.radio(
             "테스트할 버전을 선택하세요:",
             options=list(version_descriptions.keys()),
             format_func=lambda x: version_descriptions[x],
-            key="version_select"
+            key="version_select",
         )
 
         # Update current_version if changed
@@ -69,7 +68,7 @@ def main():
             "환자(본인)의 변화단계를 선택하세요:",
             options=list(stage_descriptions.keys()),
             format_func=lambda x: stage_descriptions[x],
-            key="stage_select"
+            key="stage_select",
         )
 
         if st.sidebar.button("대화 시작"):
@@ -81,12 +80,22 @@ def main():
         # Just display the current version and stage when session is started
         st.sidebar.title("현재 설정")
         st.sidebar.text(
-            f"버전: {'V1' if st.session_state.current_version == 1 else 'V2' if st.session_state.current_version == 2 else 'V3' if st.session_state.current_version == 3 else 'V4'}")
-        stage_names = {1: "고려전", 2: "고려", 3: "준비", 4: "실천", 5: "유지", 6: "종결"}
+            f"버전: {'V1' if st.session_state.current_version == 1 else 'V2' if st.session_state.current_version == 2 else 'V3' if st.session_state.current_version == 3 else 'V4'}"
+        )
+        stage_names = {
+            1: "고려전",
+            2: "고려",
+            3: "준비",
+            4: "실천",
+            5: "유지",
+            6: "종결",
+        }
         st.sidebar.text(f"변화단계: {stage_names[st.session_state.stage]}")
 
     st.title("🤝 알코올 중독 동기부여 상담 챗봇")
-    st.write("이 챗봇은 동기부여면담(Motivational Interviewing) 기법을 사용하여 당신의 변화를 돕습니다.")
+    st.write(
+        "이 챗봇은 동기부여면담(Motivational Interviewing) 기법을 사용하여 당신의 변화를 돕습니다."
+    )
 
     # Initialize therapist if needed
     if st.session_state.therapist is None and st.session_state.session_started:
@@ -104,10 +113,10 @@ def main():
 
         with st.chat_message("assistant"):
             response = st.session_state.therapist.get_response(
-                prompt, st.session_state.stage)
+                prompt, st.session_state.stage
+            )
             st.markdown(response)
-            st.session_state.messages.append(
-                {"role": "assistant", "content": response})
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
     # Reset button
     if st.button("대화 초기화"):

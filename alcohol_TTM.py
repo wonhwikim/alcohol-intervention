@@ -1,8 +1,8 @@
-from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.schema import HumanMessage, AIMessage
 from langchain.callbacks import StreamingStdOutCallbackHandler
 from langchain.memory import ConversationBufferMemory
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.schema import AIMessage, HumanMessage
+from langchain_openai import ChatOpenAI
 
 # System prompts for different versions
 V1_PROMPT = """당신은 범이론적 모형(TTM)에 기반한 변화단계를 평가하는 상담자입니다. 
@@ -65,13 +65,12 @@ class TTMChatbot:
             temperature=0.7,
             streaming=True,
             callbacks=[StreamingStdOutCallbackHandler()],
-            openai_api_key=openai_api_key
+            openai_api_key=openai_api_key,
         )
 
         # Initialize conversation memory
         self.memory = ConversationBufferMemory(
-            return_messages=True,
-            memory_key="chat_history"
+            return_messages=True, memory_key="chat_history"
         )
 
         # Select system prompt based on version
@@ -81,26 +80,26 @@ class TTMChatbot:
             self.system_prompt = V2_PROMPT
 
         # Create the chat prompt template
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", self.system_prompt),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{input}")
-        ])
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.system_prompt),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{input}"),
+            ]
+        )
 
     def get_response(self, user_input: str) -> str:
         # Create the chain
         chain = self.prompt | self.llm
 
         # Get response
-        response = chain.invoke({
-            "input": user_input,
-            "chat_history": self.memory.chat_memory.messages
-        })
+        response = chain.invoke(
+            {"input": user_input, "chat_history": self.memory.chat_memory.messages}
+        )
 
         # Update memory
         self.memory.chat_memory.add_message(HumanMessage(content=user_input))
-        self.memory.chat_memory.add_message(
-            AIMessage(content=response.content))
+        self.memory.chat_memory.add_message(AIMessage(content=response.content))
 
         return response.content
 

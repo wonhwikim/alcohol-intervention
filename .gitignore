@@ -1,8 +1,8 @@
 env/
 .env
-new/
 .venv
 .new
-files/
 .cache/
-.streamlit
+.streamlit/
+.vscode/
+__pycache__/
