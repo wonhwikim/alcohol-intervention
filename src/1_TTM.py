@@ -15,8 +15,8 @@ if "messages_TTM" not in st.session_state:
 if "TTM_chatbot" not in st.session_state:
     st.session_state.TTM_chatbot = None
 
-if "prompt_version_TTM" not in st.session_state:
-    st.session_state.prompt_version_TTM = 0  # Default to version 0 (V3)
+if "system_prompt_ver_TTM" not in st.session_state:
+    st.session_state.system_prompt_ver_TTM = 0
 
 if "session_started_TTM" not in st.session_state:
     st.session_state.session_started_TTM = False
@@ -67,9 +67,11 @@ def main():
     )
 
     # Sidebar area
+    st.sidebar.title("변화단계평가 챗봇 설정")
+
     if not st.session_state.session_started_TTM:
         # Prompt version selection
-        st.sidebar.title("TTM 프롬프트 버전 선택")
+        st.sidebar.markdown("## TTM 프롬프트 버전 선택")
 
         # Prompt version selector
         selected_version_TTM = st.sidebar.radio(
@@ -77,12 +79,12 @@ def main():
             options=list(TTM_VERSION_DICT.keys()),
             format_func=lambda x: TTM_VERSION_DICT[x],
             key="version_select_TTM",
-            index=st.session_state.prompt_version_TTM,  # Default to current version
+            index=st.session_state.system_prompt_ver_TTM,
         )
 
         # Reset conversation if version changes
-        if selected_version_TTM != st.session_state.prompt_version_TTM:
-            st.session_state.prompt_version_TTM = selected_version_TTM
+        if selected_version_TTM != st.session_state.system_prompt_ver_TTM:
+            st.session_state.system_prompt_ver_TTM = selected_version_TTM
             st.session_state.messages_TTM = []
             st.session_state.TTM_chatbot = None
 
@@ -90,19 +92,21 @@ def main():
         if st.sidebar.button("대화 시작"):
             st.session_state.session_started_TTM = True
             st.session_state.messages_TTM = []
-            initialize_TTM_chatbot(prompt_version=st.session_state.prompt_version_TTM)
+            initialize_TTM_chatbot(
+                prompt_version=st.session_state.system_prompt_ver_TTM
+            )
 
             st.rerun()
     else:  # If session has started
         st.sidebar.title("현재 대화 설정")
         st.sidebar.text(
-            f"현재 프롬프트 버전: {TTM_VERSION_DICT[st.session_state.prompt_version_TTM]}"
+            f"현재 프롬프트 버전: {TTM_VERSION_DICT[st.session_state.system_prompt_ver_TTM]}"
         )
 
     # Initialize TTM chatbot if needed
     if st.session_state.TTM_chatbot is None and st.session_state.session_started_TTM:
         st.session_state.messages_TTM = []
-        initialize_TTM_chatbot(prompt_version=st.session_state.prompt_version_TTM)
+        initialize_TTM_chatbot(prompt_version=st.session_state.system_prompt_ver_TTM)
 
     # Display chat messages_TTM
     for message in st.session_state.messages_TTM:
@@ -113,15 +117,13 @@ def main():
             if stage != "평가 불가":
                 st.success(f"📊 평가된 변화단계: {stage}")
 
-    # chat_input 비활성화 제어
+    # Chat input area - disabled if session not started
     prompt = st.chat_input(
         "메시지를 입력하세요...", disabled=not st.session_state.session_started_TTM
     )
 
     if not st.session_state.session_started_TTM:
-        st.info(
-            "💡 메시지를 입력하기 전에 좌측 사이드바에서 프롬프트 버전을 선택하세요."
-        )
+        st.info("💡 메시지를 입력하기 전에 👈 사이드바에서 프롬프트 버전을 선택하세요.")
 
     if prompt:
         # Add user message to chat history

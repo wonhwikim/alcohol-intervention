@@ -81,7 +81,7 @@ def main():
     st.sidebar.title("동기부여면담 챗봇 설정")
 
     if not st.session_state.session_started_MI:
-        # Prompt version selection area
+        # Prompt version selection
         st.sidebar.markdown("## MI 프롬프트 버전 선택")
 
         selected_system_prompt = st.sidebar.radio(
@@ -135,7 +135,7 @@ def main():
             st.rerun()
 
     else:  # After session has started
-        st.sidebar.markdown("##현재 대화 설정")
+        st.sidebar.markdown("## 현재 대화 설정")
         st.sidebar.text(f"버전: {VERSION_DICT[st.session_state.system_prompt_ver_MI]}")
         st.sidebar.text(f"변화단계: {STAGE_DICT[st.session_state.stage]}")
         st.sidebar.text(
@@ -159,7 +159,18 @@ def main():
                     f"<p style='font-size: 12px; text-align: right; color: gray;'>{timestamp_str} ({elapsed_minutes:02d}:{elapsed_seconds:02d} 경과)</p>",
                     unsafe_allow_html=True,
                 )
-    if prompt := st.chat_input("메시지를 입력하세요..."):
+
+    # Chat input area - disabled if session not started
+    prompt = st.chat_input(
+        "메시지를 입력하세요...", disabled=not st.session_state.session_started_MI
+    )
+
+    if not st.session_state.session_started_MI:
+        st.info(
+            "💡 메시지를 입력하기 전에 👈 사이드바에서 프롬프트 버전과 변화단계를 선택하세요."
+        )
+
+    if prompt:
         timestamp = datetime.datetime.now()
         elapsed_time = timestamp - st.session_state.start_time_MI
         elapsed_minutes = int(elapsed_time.total_seconds() / 60)
@@ -186,6 +197,10 @@ def main():
             st.session_state.messages_MI.append(
                 {"role": "assistant", "content": response}
             )
+
+            # Parse end-of-session
+            if False:
+                pass
 
     # Reset button
     if st.button("대화 초기화"):
