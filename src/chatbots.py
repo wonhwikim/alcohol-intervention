@@ -2,12 +2,34 @@ from langchain.callbacks import StreamingStdOutCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage
+from langchain_core.runnables.passthrough import RunnablePick
 from langchain_openai import ChatOpenAI
 
-from src.prompts import GUARDRAIL_PROMPT, MI_V5_PROMPT, TTM_V3_PROMPT
+from src.prompts import *
 
-MI_PROMPT_DICT = {0: "\n\n".join([MI_V5_PROMPT, GUARDRAIL_PROMPT])}
-TTM_PROMPT_DICT = {0: "\n\n".join([TTM_V3_PROMPT, GUARDRAIL_PROMPT])}
+MI_PROMPT_DICT = {
+    0: {
+        "prompt": MI_V5_PROMPT,
+        "keylist": ["STAGE"],
+    },
+    1: {
+        "prompt": MI_V6_PROMPT,
+        "keylist": [
+            "STAGE",
+            "ONBOARDING-DATA",
+            "SELF-REPORTS",
+            "SESSION-NUMBER",
+            "SESSION-NOTES",
+            "SESSION-DATE",
+        ],
+    },
+}
+
+TTM_PROMPT_DICT = {
+    0: {
+        "prompt": TTM_V3_PROMPT,
+    }
+}
 
 
 class MIChatbot:
@@ -43,7 +65,8 @@ class MIChatbot:
         self.prompt_version = version
 
         try:
-            self.system_prompt = MI_PROMPT_DICT[version]
+            self.system_prompt = MI_PROMPT_DICT[version]["prompt"]
+            self.prompt_keylist = MI_PROMPT_DICT[version]["keylist"]
         except:
             raise ValueError(
                 f"Invalid version: {version}. Available versions: {list(MI_PROMPT_DICT.keys())}"
@@ -58,25 +81,17 @@ class MIChatbot:
             ]
         )
 
-    def get_response(self, user_input: str, stage: int) -> str:
+    def get_response(self, user_input: str, payload: dict) -> str:
         # Create chain
-        chain = self.prompt | self.llm
-
-        stage_dict = {
-            1: "Precontemplation",
-            2: "Contemplation",
-            3: "Preparation",
-            4: "Action",
-            5: "Maintenance",
-            6: "Termination",
-        }
+        chain = (
+            RunnablePick(["input", "chat_history"] + self.prompt_keylist)
+            | self.prompt
+            | self.llm
+        )
 
         response = chain.invoke(
-            {
-                "stage": stage_dict[stage],
-                "input": user_input,
-                "chat_history": self.memory.chat_memory.messages,
-            }
+            payload
+            | {"input": user_input, "chat_history": self.memory.chat_memory.messages}
         )
 
         # Append the response to memory
@@ -121,7 +136,7 @@ class TTMChatbot:
         # Initialize prompt
         self.prompt_version = version
 
-        self.system_prompt = TTM_PROMPT_DICT[version]
+        self.system_prompt = TTM_PROMPT_DICT[version]["prompt"]
 
         # Create the chat prompt template
         self.prompt = ChatPromptTemplate.from_messages(

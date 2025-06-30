@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import streamlit as st
 
@@ -10,6 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Define dictionaries for stages, versions, and initial prompts
 STAGE_DICT = {
     1: "고려전 (Precontemplation)",
     2: "고려 (Contemplation)",
@@ -19,12 +21,31 @@ STAGE_DICT = {
     6: "종결 (Termination)",
 }
 
-VERSION_DICT = {0: "V5 + Guardrail"}
+
+VERSION_DICT = {0: "V5 (V4 수정 + Guardrail)", 1: "V6 (4판 기반 + Guardrail)"}
 
 INITIAL_PROMPT_DICT = {
-    0: "안녕하세요, 저는 당신의 동기부여 상담사입니다. 오늘 상담을 시작해볼까요?",
-    1: "안녕하세요",
+    0: "안녕하세요, 반갑습니다. 오늘 상담을 시작해볼까요? 오늘 내담자님께서 경험하신 일이나, 들었던 생각 또는 감정에 대해 이야기해볼까요?",
+    1: "안녕하세요, 저는 당신의 동기부여 상담사입니다. 오늘 상담을 시작해볼까요?",
 }
+
+# Load data from json files - onboarding data, self-reports, and session notes
+with open("json/example_onboarding.json", "rt", encoding="utf-8") as f:
+    onboarding_data = json.load(f)
+onboarding_data_s = json.dumps(onboarding_data, indent=2, ensure_ascii=False)
+
+with open("json/example_daily.json", "rt", encoding="utf-8") as f:
+    self_reports = json.load(f)
+self_reports_s = json.dumps(self_reports, indent=2, ensure_ascii=False)
+
+
+with open("json/example_notes.json", "rt", encoding="utf-8") as f:
+    session_notes = json.load(f)
+session_number = len(session_notes) + 1
+
+notes_s = ""
+for note in session_notes:
+    notes_s += f"""Session {note["sessionNumber"]} ({note["sessionDateTime"][:10]}): {note["sessionNotes"]}\n"""
 
 # Initialize session states
 if "MI_chatbot" not in st.session_state:
@@ -51,7 +72,7 @@ if "start_time_MI" not in st.session_state:
 
 def initialize_MI_chatbot(prompt_version: int) -> None:
     """Initialize the MI chatbot with OpenAI API key and version"""
-    openai_api_key = st.secrets["OPENAI_API_KEY"]
+    openai_api_key = st.secrets["OPENAI_API_KEY"]  # type: ignore
 
     # Add initial message from MI_chatbot if not present
     if not st.session_state.messages_MI:
@@ -68,6 +89,15 @@ def initialize_MI_chatbot(prompt_version: int) -> None:
     )
 
     return
+
+
+def parse_end_of_session(response: str):
+    """Parse the end-of-session indicator from the response"""
+    if "[END-OF-SESSION]" in response:
+        # Extract the summary after the end-of-session indicator
+        summary = response.split("[END-OF-SESSION]")[1].strip()
+        return summary
+    return False
 
 
 def main():
@@ -108,6 +138,11 @@ def main():
             key="stage_select",
             index=st.session_state.stage - 1,  # Default to current stage
         )
+
+        if selected_stage != st.session_state.stage:
+            st.session_state.stage = selected_stage
+            st.session_state.messages_MI = []
+            st.session_state.MI_chatbot = None
 
         # Initial prompt selection area
         st.sidebar.markdown("## 챗봇 첫 메시지 선택")
@@ -159,6 +194,10 @@ def main():
                     f"<p style='font-size: 12px; text-align: right; color: gray;'>{timestamp_str} ({elapsed_minutes:02d}:{elapsed_seconds:02d} 경과)</p>",
                     unsafe_allow_html=True,
                 )
+            if message["role"] == "assistant" and parse_end_of_session(
+                message["content"]
+            ):
+                st.success("📜 세션이 종료되었습니다.")
 
     # Chat input area - disabled if session not started
     prompt = st.chat_input(
@@ -190,8 +229,20 @@ def main():
             )
 
         with st.chat_message("assistant"):
+
+            payload = {
+                "STAGE": STAGE_DICT.get(st.session_state.stage, "UNKNOWN"),
+                "ONBOARDING-DATA": onboarding_data_s,
+                "SELF-REPORTS": self_reports_s,
+                "SESSION-NUMBER": session_number,
+                "SESSION-NOTES": notes_s,
+                "SESSION-DATE": st.session_state.start_time_MI.strftime("%Y-%m-%d"),
+            }
+
+            # print(payload)
+
             response = st.session_state.MI_chatbot.get_response(
-                prompt + elapsed_time_message, st.session_state.stage
+                prompt + elapsed_time_message, payload
             )
             st.markdown(response)
             st.session_state.messages_MI.append(
@@ -199,8 +250,11 @@ def main():
             )
 
             # Parse end-of-session
-            if False:
-                pass
+            if summary := parse_end_of_session(response):
+                print(summary)
+                st.success("📜 세션이 종료되었습니다.")
+                st.session_state.session_started_MI = False
+                st.rerun()
 
     # Reset button
     if st.button("대화 초기화"):

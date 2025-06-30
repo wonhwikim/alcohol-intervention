@@ -1,0 +1,29 @@
+{
+  "mood": "neutral",
+  "interest": "neutral",
+  "meal": {
+    "breakfast": "no",
+    "lunch": "yes_medium",
+    "dinner": "yes_light",
+    "midnightSnack": "no"
+  },
+  "drinking": {
+    "drinkedToday": "yes",
+    "details": {
+      "timeOfDay": "dinner",
+      "type": "soju",
+      "amount": "300ml",
+      "withWho": "friends",
+      "forHowLong": "2hours",
+      "where": "restaurant",
+      "reason": ["stress relief", "socializing"],
+      "blackout": "no"
+    }
+  },
+  "sleep": {
+    "timeSlept": "23:00",
+    "timeWokeUp": "07:00",
+    "satisfaction": "bad",
+    "fatigue": "moderate"
+  }
+}
