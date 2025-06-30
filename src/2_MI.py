@@ -22,7 +22,10 @@ STAGE_DICT = {
 }
 
 
-VERSION_DICT = {0: "V5 (V4 수정 + Guardrail)", 1: "V6 (4판 기반 + Guardrail)"}
+VERSION_DICT = {
+    0: "V5 (V4 수정 + Guardrail)",
+    1: "V6 (4판 기반 + 내담자 데이터 + Guardrail)",
+}
 
 INITIAL_PROMPT_DICT = {
     0: "안녕하세요, 반갑습니다. 오늘 상담을 시작하겠습니다. 오늘 내담자님께서 경험하신 일이나, 들었던 생각 또는 감정에 대해 이야기해볼까요?",
