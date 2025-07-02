@@ -11,6 +11,31 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Load data from json files - onboarding data, self-reports, and session notes
+# Each json file is structured as a list of dictionaries
+# Convert each list to dictionary for easier access
+
+with open("json/example_onboarding.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+    for i in range(len(data)):
+        ONBOARDING_DICT = {i: data[i] for i in range(len(data))}
+
+with open("json/example_selfreports.json", "rt", encoding="utf-8") as f:
+    data = json.load(f)
+
+    # Convert data to dictionary for easier access
+    for i in range(len(data)):
+        SELF_REPORTS_DICT = {i: data[i] for i in range(len(data))}
+
+with open("json/example_notes.json", "rt", encoding="utf-8") as f:
+    session_notes = json.load(f)
+    session_number = len(session_notes) + 1
+    notes_s = ""
+    for note in session_notes:
+        notes_s += f"""Session {note["sessionNumber"]} ({note["sessionDateTime"][:10]}): {note["sessionNotes"]}\n"""
+
+
 # Define dictionaries for stages, versions, and initial prompts
 STAGE_DICT = {
     1: "고려전 (Precontemplation)",
@@ -21,7 +46,6 @@ STAGE_DICT = {
     6: "종결 (Termination)",
 }
 
-
 VERSION_DICT = {
     0: "V5 (V4 수정 + Guardrail)",
     1: "V6 (4판 기반 + 내담자 데이터 + Guardrail)",
@@ -29,26 +53,16 @@ VERSION_DICT = {
 
 INITIAL_PROMPT_DICT = {
     0: "안녕하세요, 반갑습니다. 오늘 상담을 시작하겠습니다. 오늘 내담자님께서 경험하신 일이나, 들었던 생각 또는 감정에 대해 이야기해볼까요?",
-    1: "안녕하세요, 저는 당신의 동기부여 상담사입니다. 오늘 상담을 시작해볼까요?",
+    1: f"안녕하세요, {session_number}번째 상담이네요. 시작해볼까요?",
 }
 
-# Load data from json files - onboarding data, self-reports, and session notes
-with open("json/example_onboarding.json", "rt", encoding="utf-8") as f:
-    onboarding_data = json.load(f)
-onboarding_data_s = json.dumps(onboarding_data, indent=2, ensure_ascii=False)
 
-with open("json/example_daily.json", "rt", encoding="utf-8") as f:
-    self_reports = json.load(f)
-self_reports_s = json.dumps(self_reports, indent=2, ensure_ascii=False)
+@st.dialog("text", width="large")
+def data_to_modal(data: str):
+    """Display the selected onboarding data in a modal dialog"""
+    st.markdown("# 데이터 보기")
+    st.json(data, expanded=True)
 
-
-with open("json/example_notes.json", "rt", encoding="utf-8") as f:
-    session_notes = json.load(f)
-session_number = len(session_notes) + 1
-
-notes_s = ""
-for note in session_notes:
-    notes_s += f"""Session {note["sessionNumber"]} ({note["sessionDateTime"][:10]}): {note["sessionNotes"]}\n"""
 
 # Initialize session states
 if "MI_chatbot" not in st.session_state:
@@ -71,6 +85,12 @@ if "session_started_MI" not in st.session_state:
 
 if "start_time_MI" not in st.session_state:
     st.session_state.start_time_MI = datetime.datetime.now()
+
+if "selected_onboarding_MI" not in st.session_state:
+    st.session_state.selected_onboarding_MI = 0
+
+if "selected_selfreport_MI" not in st.session_state:
+    st.session_state.selected_selfreport_MI = 0
 
 
 def initialize_MI_chatbot(prompt_version: int) -> None:
@@ -147,6 +167,64 @@ def main():
             st.session_state.messages_MI = []
             st.session_state.MI_chatbot = None
 
+        # Client data selection area
+        # Client onboarding data
+        st.sidebar.markdown("## 내담자 데이터 선택")
+        st.sidebar.markdown("### 온보딩 데이터")
+        selected_onboarding = st.sidebar.selectbox(
+            "내담자의 온보딩 데이터를 선택하세요:",
+            options=list(ONBOARDING_DICT.keys()),
+            format_func=lambda x: ONBOARDING_DICT[int(x)]["label"],
+            key="onboarding_select",
+            index=st.session_state.selected_onboarding_MI,
+        )
+        if selected_onboarding != st.session_state.selected_onboarding_MI:
+            st.session_state.selected_onboarding_MI = selected_onboarding
+            onboarding_data_s = ONBOARDING_DICT[selected_onboarding]["data"]
+            st.session_state.messages_MI = []
+            st.session_state.MI_chatbot = None
+
+        # Button to view selected onboarding data - display data in a modal
+        if st.sidebar.button("선택한 온보딩 데이터 보기"):
+            data_to_modal(
+                json.dumps(
+                    ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
+                    ensure_ascii=False,
+                )
+            )
+
+        # Client self-reports data
+        st.sidebar.markdown("### 자기보고 데이터 선택")
+        selected_selfreport = st.sidebar.selectbox(
+            "내담자의 자기보고 데이터를 선택하세요:",
+            options=list(SELF_REPORTS_DICT.keys()),
+            format_func=lambda x: SELF_REPORTS_DICT[int(x)]["label"],
+            key="selfreport_select",
+            index=st.session_state.selected_selfreport_MI,
+        )
+
+        if selected_selfreport != st.session_state.selected_selfreport_MI:
+            st.session_state.selected_selfreport_MI = selected_selfreport
+            self_reports_s = SELF_REPORTS_DICT[selected_selfreport]
+            st.session_state.messages_MI = []
+            st.session_state.MI_chatbot = None
+
+        if st.sidebar.button("선택한 자기보고 데이터 보기"):
+            data_to_modal(
+                json.dumps(
+                    SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
+                    ensure_ascii=False,
+                )
+            )
+
+        # Session notes (only viewing for now)
+        st.sidebar.markdown("### 지난 회기 기록")
+        st.sidebar.button(
+            "지난 회기 기록 보기",
+            on_click=data_to_modal,
+            args=(json.dumps(session_notes, ensure_ascii=False),),
+        )
+
         # Initial prompt selection area
         st.sidebar.markdown("## 챗봇 첫 메시지 선택")
 
@@ -174,10 +252,46 @@ def main():
 
     else:  # After session has started
         st.sidebar.markdown("## 현재 대화 설정")
-        st.sidebar.text(f"버전: {VERSION_DICT[st.session_state.system_prompt_ver_MI]}")
-        st.sidebar.text(f"변화단계: {STAGE_DICT[st.session_state.stage]}")
-        st.sidebar.text(
-            f"시작 시간: {st.session_state.start_time_MI.strftime('%Y-%m-%d %H:%M:%S')}"
+        st.sidebar.markdown(f"### 프롬프트 버전")
+        st.sidebar.markdown(f"{VERSION_DICT[st.session_state.system_prompt_ver_MI]}")
+
+        st.sidebar.markdown("### 변화단계")
+        st.sidebar.markdown(f"{STAGE_DICT[st.session_state.stage]}")
+
+        st.sidebar.markdown("### 온보딩 데이터")
+        st.sidebar.markdown(
+            f"{ONBOARDING_DICT[st.session_state.selected_onboarding_MI]['label']}"
+        )
+        st.sidebar.button(
+            "온보딩 데이터 보기",
+            on_click=data_to_modal,
+            args=(
+                json.dumps(
+                    ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
+                    ensure_ascii=False,
+                ),
+            ),
+        )
+
+        st.sidebar.markdown("### 자기보고 데이터")
+        st.sidebar.markdown(
+            f"{SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI]['label']}"
+        )
+
+        st.sidebar.button(
+            "자기보고 데이터 보기",
+            on_click=data_to_modal,
+            args=(
+                json.dumps(
+                    SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
+                    ensure_ascii=False,
+                ),
+            ),
+        )
+
+        st.sidebar.markdown("### 시작 시간")
+        st.sidebar.markdown(
+            f"{st.session_state.start_time_MI.strftime('%Y-%m-%d %H:%M:%S')}"
         )
 
     # Initialize therapist if needed
@@ -200,7 +314,7 @@ def main():
             if message["role"] == "assistant" and parse_end_of_session(
                 message["content"]
             ):
-                st.success("📜 세션이 종료되었습니다.")
+                st.success("⚠️ 세션이 종료되었습니다.")
 
     # Chat input area - disabled if session not started
     prompt = st.chat_input(

@@ -1,9 +1,50 @@
-{
-  "birthday": "1998-05-15",
-  "gender": "m",
-  "occupation": "student",
-  "education": "graduate",
-  "maritalStatus": "single",
-  "smoking": "no",
-  "psychiatricHistory": "no"
-}
+[
+  {
+    "label": "20대 남성",
+    "data": {
+      "birthday": "2002-05-15",
+      "gender": "m",
+      "occupation": "student",
+      "education": "graduate",
+      "maritalStatus": "single",
+      "smoking": "no",
+      "psychiatricHistory": "no"
+    }
+  },
+  {
+    "label": "30대 여성",
+    "data": {
+      "birthday": "1993-08-22",
+      "gender": "f",
+      "occupation": "teacher",
+      "education": "bachelor",
+      "maritalStatus": "single",
+      "smoking": "no",
+      "psychiatricHistory": "no"
+    }
+  },
+  {
+    "label": "40대 여성",
+    "data": {
+      "birthday": "1985-12-03",
+      "gender": "f",
+      "occupation": "engineer",
+      "education": "bachelor",
+      "maritalStatus": "married",
+      "smoking": "yes",
+      "psychiatricHistory": "yes"
+    }
+  },
+  {
+    "label": "50대 남성",
+    "data": {
+      "birthday": "1971-02-01",
+      "gender": "m",
+      "occupation": "factory worker",
+      "education": "highschool",
+      "maritalStatus": "divorced",
+      "smoking": "yes",
+      "psychiatricHistory": "no"
+    }
+  }
+]

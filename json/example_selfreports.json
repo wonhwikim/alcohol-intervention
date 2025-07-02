@@ -1,0 +1,89 @@
+[
+  {
+    "label": "중간 기분, 소주 1병",
+    "data": {
+      "mood": "neutral",
+      "interest": "neutral",
+      "meal": {
+        "breakfast": "no",
+        "lunch": "yes_medium",
+        "dinner": "yes_light",
+        "midnightSnack": "no"
+      },
+      "drinking": {
+        "drinkedToday": "yes",
+        "details": {
+          "timeOfDay": "dinner",
+          "type": "soju",
+          "amount": "300ml",
+          "withWho": "friends",
+          "forHowLong": "2hours",
+          "where": "restaurant",
+          "reason": ["stress relief", "socializing"],
+          "blackout": "no"
+        }
+      },
+      "sleep": {
+        "timeSlept": "23:00",
+        "timeWokeUp": "07:00",
+        "satisfaction": "bad",
+        "fatigue": "moderate"
+      }
+    }
+  },
+  {
+    "label": "좋은 기분, 음주하지 않음",
+    "data": {
+      "mood": "happy",
+      "interest": "high",
+      "meal": {
+        "breakfast": "yes_light",
+        "lunch": "yes_heavy",
+        "dinner": "no",
+        "midnightSnack": "no"
+      },
+      "drinking": {
+        "drinkedToday": "no",
+        "details": {}
+      },
+      "sleep": {
+        "timeSlept": "22:30",
+        "timeWokeUp": "06:30",
+        "satisfaction": "good",
+        "fatigue": "low"
+      }
+    }
+  },
+  {
+    "label": "슬픈 기분, 맥주 500ml",
+    "data": {
+      "mood": "sad",
+      "interest": "low",
+      "meal": {
+        "breakfast": "yes_medium",
+        "lunch": "no",
+        "dinner": "yes_light",
+        "midnightSnack": "yes_heavy"
+      },
+      "drinking": {
+        "drinkedToday": "yes",
+        "details": {
+          "timeOfDay": "evening",
+          "type": "beer",
+          "amount": "500ml",
+          "withWho": "alone",
+          "forHowLong": "1hour",
+          "where": "home",
+          "reason": ["boredom"],
+          "blackout": "yes_moderate"
+        }
+      },
+      "sleep": {
+        "timeSlept": "01:00",
+        "timeWokeUp": "09:00",
+        "satisfaction": "bad",
+        "fatigue": "high"
+      }
+    }
+  }
+]
