@@ -1,5 +1,6 @@
 import datetime
 import json
+import time
 
 import streamlit as st
 
@@ -11,29 +12,73 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+def initialize_session_states():
+    """Initialize session states for MI chatbot"""
+    # Initialize session states
+    if "MI_chatbot" not in st.session_state:
+        st.session_state.MI_chatbot = None
+
+    if "messages_MI" not in st.session_state:
+        st.session_state.messages_MI = []
+
+    if "system_prompt_ver_MI" not in st.session_state:
+        st.session_state.system_prompt_ver_MI = 0
+
+    if "initial_prompt_ver_MI" not in st.session_state:
+        st.session_state.initial_prompt_ver_MI = 0
+
+    if "stage" not in st.session_state:
+        st.session_state.stage = 1
+
+    if "session_started_MI" not in st.session_state:
+        st.session_state.session_started_MI = False
+
+    if "start_time_MI" not in st.session_state:
+        st.session_state.start_time_MI = datetime.datetime.now()
+
+    if "selected_onboarding_MI" not in st.session_state:
+        st.session_state.selected_onboarding_MI = 0
+    if "selected_selfreport_MI" not in st.session_state:
+        st.session_state.selected_selfreport_MI = 0
+    if "selected_session_notes" not in st.session_state:
+        st.session_state.selected_session_notes = 0
+
+    if "onboardings" not in st.session_state:
+        with open("json/example_onboarding.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+            st.session_state.onboardings = {i: data[i] for i in range(len(data))}
+
+    if "self_reports" not in st.session_state:
+        with open("json/example_selfreports.json", "rt", encoding="utf-8") as f:
+            data = json.load(f)
+
+            st.session_state.self_reports = {i: data[i] for i in range(len(data))}
+
+    if "session_series" not in st.session_state:
+        with open("json/example_notes.json", "rt", encoding="utf-8") as f:
+            data = json.load(f)
+            st.session_state.session_series = {i: data[i] for i in range(len(data))}
+        # Debug
+        print("Session series loaded:", st.session_state.session_series)
+
+    if "session_notes" not in st.session_state:
+        if st.session_state.session_series != {}:
+            st.session_state.session_notes = st.session_state.session_series[0]["data"]
+        else:
+            st.session_state.session_notes = []
+
+    if "session_number" not in st.session_state:
+        # Initialize session number based on the length of session notes
+        st.session_state.session_number = len(st.session_state.session_notes) + 1
+
+    return
+
+
 # Load data from json files - onboarding data, self-reports, and session notes
 # Each json file is structured as a list of dictionaries
 # Convert each list to dictionary for easier access
-
-with open("json/example_onboarding.json", "r", encoding="utf-8") as f:
-    data = json.load(f)
-
-    for i in range(len(data)):
-        ONBOARDING_DICT = {i: data[i] for i in range(len(data))}
-
-with open("json/example_selfreports.json", "rt", encoding="utf-8") as f:
-    data = json.load(f)
-
-    # Convert data to dictionary for easier access
-    for i in range(len(data)):
-        SELF_REPORTS_DICT = {i: data[i] for i in range(len(data))}
-
-with open("json/example_notes.json", "rt", encoding="utf-8") as f:
-    session_notes = json.load(f)
-    session_number = len(session_notes) + 1
-    notes_s = ""
-    for note in session_notes:
-        notes_s += f"""Session {note["sessionNumber"]} ({note["sessionDateTime"][:10]}): {note["sessionNotes"]}\n"""
 
 
 # Define dictionaries for stages, versions, and initial prompts
@@ -53,7 +98,53 @@ VERSION_DICT = {
 
 INITIAL_PROMPT_DICT = {
     0: "안녕하세요, 반갑습니다. 오늘 상담을 시작하겠습니다. 오늘 내담자님께서 경험하신 일이나, 들었던 생각 또는 감정에 대해 이야기해볼까요?",
-    1: f"안녕하세요, {session_number}번째 상담이네요. 시작해볼까요?",
+    1: f"안녕하세요, 시작해볼까요?",
+}
+
+ONBOARDING_EMPTY = {
+    "label": "",
+    "data": {
+        "birthday": "",
+        "gender": "",
+        "occupation": "",
+        "education": "",
+        "maritalStatus": "",
+        "smoking": "",
+        "psychiatricHistory": "",
+    },
+}
+
+SELF_REPORT_EMPTY = {
+    "label": "",
+    "data": {
+        "mood": "",
+        "interest": "",
+        "meal": {
+            "breakfast": "",
+            "lunch": "",
+            "dinner": "",
+            "midnightSnack": "",
+        },
+        "drinking": {
+            "drinkedToday": "",
+            "details": {
+                "timeOfDay": "",
+                "type": "",
+                "amount": "",
+                "withWho": "",
+                "forHowLong": "",
+                "where": "",
+                "reason": [],
+                "blackout": "",
+            },
+        },
+        "sleep": {
+            "timeSlept": "",
+            "timeWokeUp": "",
+            "satisfaction": "",
+            "fatigue": "",
+        },
+    },
 }
 
 
@@ -64,33 +155,58 @@ def data_to_modal(data: str):
     st.json(data, expanded=True)
 
 
-# Initialize session states
-if "MI_chatbot" not in st.session_state:
-    st.session_state.MI_chatbot = None
-
-if "messages_MI" not in st.session_state:
-    st.session_state.messages_MI = []
-
-if "system_prompt_ver_MI" not in st.session_state:
-    st.session_state.system_prompt_ver_MI = 0
-
-if "initial_prompt_ver_MI" not in st.session_state:
-    st.session_state.initial_prompt_ver_MI = 0
-
-if "stage" not in st.session_state:
-    st.session_state.stage = 1
-
-if "session_started_MI" not in st.session_state:
-    st.session_state.session_started_MI = False
-
-if "start_time_MI" not in st.session_state:
-    st.session_state.start_time_MI = datetime.datetime.now()
-
-if "selected_onboarding_MI" not in st.session_state:
-    st.session_state.selected_onboarding_MI = 0
-
-if "selected_selfreport_MI" not in st.session_state:
-    st.session_state.selected_selfreport_MI = 0
+@st.dialog("text", width="large")
+def add_custom_data(category: str):
+    if category == "onboarding":
+        st.markdown("# 온보딩 데이터 추가")
+        input = st.text_area(
+            "온보딩 데이터를 입력하세요 (JSON 형식)",
+            value=json.dumps(ONBOARDING_EMPTY, ensure_ascii=False, indent=2),
+            key="custom_onboarding_data",
+            height=300,
+        )
+        if st.button("온보딩 데이터 추가"):
+            try:
+                custom_data = json.loads(input)
+                if isinstance(custom_data, dict) and "data" in custom_data:
+                    new_key = len(st.session_state.onboardings)
+                    st.session_state.onboardings[new_key] = {
+                        "label": custom_data["label"],
+                        "data": custom_data["data"],
+                    }
+                    st.success("온보딩 데이터가 추가되었습니다.")
+                    time.sleep(1.5)
+                    st.rerun()
+                else:
+                    st.error("잘못된 온보딩 데이터 형식입니다.")
+            except json.JSONDecodeError:
+                st.error("유효하지 않은 JSON 형식입니다.")
+    elif category == "selfreport":
+        st.markdown("# 자기보고 데이터 추가")
+        input = st.text_area(
+            "자기보고 데이터를 입력하세요 (JSON 형식)",
+            value=json.dumps(SELF_REPORT_EMPTY, ensure_ascii=False, indent=2),
+            key="custom_selfreport_data",
+            height=600,
+        )
+        if st.button("자기보고 데이터 추가"):
+            try:
+                custom_data = json.loads(input)
+                if isinstance(custom_data, dict) and "data" in custom_data:
+                    new_key = len(st.session_state.self_reports)
+                    st.session_state.self_reports[new_key] = {
+                        "label": custom_data["label"],
+                        "data": custom_data["data"],
+                    }
+                    st.success("자기보고 데이터가 추가되었습니다.")
+                    time.sleep(1.5)
+                    st.rerun()
+                else:
+                    st.error("잘못된 자기보고 데이터 형식입니다.")
+            except json.JSONDecodeError:
+                st.error("유효하지 않은 JSON 형식입니다.")
+    else:
+        raise ValueError("Invalid category. Choose 'onboarding' or 'selfreport'.")
 
 
 def initialize_MI_chatbot(prompt_version: int) -> None:
@@ -124,6 +240,8 @@ def parse_end_of_session(response: str):
 
 
 def main():
+    initialize_session_states()
+
     # Main area
     st.title("🤝 음주 문제 동기부여 상담 챗봇")
     st.markdown(
@@ -174,14 +292,16 @@ def main():
             st.sidebar.markdown("### 온보딩 데이터")
             selected_onboarding = st.sidebar.selectbox(
                 "내담자의 온보딩 데이터를 선택하세요:",
-                options=list(ONBOARDING_DICT.keys()),
-                format_func=lambda x: ONBOARDING_DICT[int(x)]["label"],
+                options=list(st.session_state.onboardings.keys()),
+                format_func=lambda x: st.session_state.onboardings[int(x)]["label"],
                 key="onboarding_select",
                 index=st.session_state.selected_onboarding_MI,
             )
             if selected_onboarding != st.session_state.selected_onboarding_MI:
                 st.session_state.selected_onboarding_MI = selected_onboarding
-                onboarding_data_s = ONBOARDING_DICT[selected_onboarding]["data"]
+                onboarding_data_s = st.session_state.onboardings[selected_onboarding][
+                    "data"
+                ]
                 st.session_state.messages_MI = []
                 st.session_state.MI_chatbot = None
 
@@ -189,41 +309,72 @@ def main():
             if st.sidebar.button("선택한 온보딩 데이터 보기"):
                 data_to_modal(
                     json.dumps(
-                        ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
+                        st.session_state.onboardings[
+                            st.session_state.selected_onboarding_MI
+                        ],
                         ensure_ascii=False,
                     )
                 )
+
+            # Button to add custom onboarding data
+            if st.sidebar.button("온보딩 데이터 추가"):
+                add_custom_data(category="onboarding")
 
             # Client self-reports data
             st.sidebar.markdown("### 자기보고 데이터 선택")
             selected_selfreport = st.sidebar.selectbox(
                 "내담자의 자기보고 데이터를 선택하세요:",
-                options=list(SELF_REPORTS_DICT.keys()),
-                format_func=lambda x: SELF_REPORTS_DICT[int(x)]["label"],
+                options=list(st.session_state.self_reports.keys()),
+                format_func=lambda x: st.session_state.self_reports[int(x)]["label"],
                 key="selfreport_select",
                 index=st.session_state.selected_selfreport_MI,
             )
 
             if selected_selfreport != st.session_state.selected_selfreport_MI:
                 st.session_state.selected_selfreport_MI = selected_selfreport
-                self_reports_s = SELF_REPORTS_DICT[selected_selfreport]
+                self_reports_s = st.session_state.self_reports[selected_selfreport]
                 st.session_state.messages_MI = []
                 st.session_state.MI_chatbot = None
 
             if st.sidebar.button("선택한 자기보고 데이터 보기"):
                 data_to_modal(
                     json.dumps(
-                        SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
+                        st.session_state.self_reports[
+                            st.session_state.selected_selfreport_MI
+                        ],
                         ensure_ascii=False,
                     )
                 )
 
+            # Button to add custom self-report data
+            if st.sidebar.button("자기보고 데이터 추가"):
+                add_custom_data(category="selfreport")
+
             # Session notes (only viewing for now)
-            st.sidebar.markdown("### 지난 회기 기록")
+            st.sidebar.markdown("### 지난 회기 기록 선택")
+            selected_session_series = st.sidebar.selectbox(
+                "지난 회기 기록을 선택하세요:",
+                options=list(st.session_state.session_series.keys()),
+                format_func=lambda x: st.session_state.session_series[int(x)]["label"],
+                key="session_notes_select",
+                index=st.session_state.selected_session_notes,
+            )
+
+            if selected_session_series != st.session_state.selected_session_notes:
+                st.session_state.selected_session_notes = selected_session_series
+                st.session_state.session_notes = st.session_state.session_series[
+                    selected_session_series
+                ]["data"]
+                st.session_state.session_number = (
+                    len(st.session_state.session_notes) + 1
+                )
+                st.session_state.messages_MI = []
+                st.session_state.MI_chatbot = None
+
             st.sidebar.button(
                 "지난 회기 기록 보기",
                 on_click=data_to_modal,
-                args=(json.dumps(session_notes, ensure_ascii=False),),
+                args=(json.dumps(st.session_state.session_notes, ensure_ascii=False),),
             )
         else:
             st.sidebar.markdown("(비활성)")
@@ -264,14 +415,16 @@ def main():
         if st.session_state.system_prompt_ver_MI == 1:
             st.sidebar.markdown("### 온보딩 데이터")
             st.sidebar.markdown(
-                f"{ONBOARDING_DICT[st.session_state.selected_onboarding_MI]['label']}"
+                f"{st.session_state.onboardings[st.session_state.selected_onboarding_MI]['label']}"
             )
             st.sidebar.button(
                 "온보딩 데이터 보기",
                 on_click=data_to_modal,
                 args=(
                     json.dumps(
-                        ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
+                        st.session_state.onboardings[
+                            st.session_state.selected_onboarding_MI
+                        ],
                         ensure_ascii=False,
                     ),
                 ),
@@ -279,7 +432,7 @@ def main():
 
             st.sidebar.markdown("### 자기보고 데이터")
             st.sidebar.markdown(
-                f"{SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI]['label']}"
+                f"{st.session_state.self_reports[st.session_state.selected_selfreport_MI]['label']}"
             )
 
             st.sidebar.button(
@@ -287,7 +440,9 @@ def main():
                 on_click=data_to_modal,
                 args=(
                     json.dumps(
-                        SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
+                        st.session_state.self_reports[
+                            st.session_state.selected_selfreport_MI
+                        ],
                         ensure_ascii=False,
                     ),
                 ),
@@ -355,8 +510,8 @@ def main():
                 "STAGE": STAGE_DICT.get(st.session_state.stage, "UNKNOWN"),
                 "ONBOARDING-DATA": onboarding_data_s,
                 "SELF-REPORTS": self_reports_s,
-                "SESSION-NUMBER": session_number,
-                "SESSION-NOTES": notes_s,
+                "SESSION-NUMBER": st.session_state.session_number,
+                "SESSION-NOTES": st.session_state.session_notes,
                 "SESSION-DATE": st.session_state.start_time_MI.strftime("%Y-%m-%d"),
             }
 

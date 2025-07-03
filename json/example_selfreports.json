@@ -44,7 +44,16 @@
       },
       "drinking": {
         "drinkedToday": "no",
-        "details": {}
+        "details": {
+          "timeOfDay": "none",
+          "type": "none",
+          "amount": "none",
+          "withWho": "none",
+          "forHowLong": "none",
+          "where": "none",
+          "reason": [],
+          "blackout": "no"
+        }
       },
       "sleep": {
         "timeSlept": "22:30",
