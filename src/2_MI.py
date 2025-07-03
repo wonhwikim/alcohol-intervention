@@ -167,63 +167,66 @@ def main():
             st.session_state.messages_MI = []
             st.session_state.MI_chatbot = None
 
-        # Client data selection area
-        # Client onboarding data
-        st.sidebar.markdown("## 내담자 데이터 선택")
-        st.sidebar.markdown("### 온보딩 데이터")
-        selected_onboarding = st.sidebar.selectbox(
-            "내담자의 온보딩 데이터를 선택하세요:",
-            options=list(ONBOARDING_DICT.keys()),
-            format_func=lambda x: ONBOARDING_DICT[int(x)]["label"],
-            key="onboarding_select",
-            index=st.session_state.selected_onboarding_MI,
-        )
-        if selected_onboarding != st.session_state.selected_onboarding_MI:
-            st.session_state.selected_onboarding_MI = selected_onboarding
-            onboarding_data_s = ONBOARDING_DICT[selected_onboarding]["data"]
-            st.session_state.messages_MI = []
-            st.session_state.MI_chatbot = None
+        st.sidebar.markdown("## 내담자 데이터 선택 (V6 전용)")
+        if st.session_state.system_prompt_ver_MI == 1:
+            # Client data selection area
+            # Client onboarding data
+            st.sidebar.markdown("### 온보딩 데이터")
+            selected_onboarding = st.sidebar.selectbox(
+                "내담자의 온보딩 데이터를 선택하세요:",
+                options=list(ONBOARDING_DICT.keys()),
+                format_func=lambda x: ONBOARDING_DICT[int(x)]["label"],
+                key="onboarding_select",
+                index=st.session_state.selected_onboarding_MI,
+            )
+            if selected_onboarding != st.session_state.selected_onboarding_MI:
+                st.session_state.selected_onboarding_MI = selected_onboarding
+                onboarding_data_s = ONBOARDING_DICT[selected_onboarding]["data"]
+                st.session_state.messages_MI = []
+                st.session_state.MI_chatbot = None
 
-        # Button to view selected onboarding data - display data in a modal
-        if st.sidebar.button("선택한 온보딩 데이터 보기"):
-            data_to_modal(
-                json.dumps(
-                    ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
-                    ensure_ascii=False,
+            # Button to view selected onboarding data - display data in a modal
+            if st.sidebar.button("선택한 온보딩 데이터 보기"):
+                data_to_modal(
+                    json.dumps(
+                        ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
+                        ensure_ascii=False,
+                    )
                 )
+
+            # Client self-reports data
+            st.sidebar.markdown("### 자기보고 데이터 선택")
+            selected_selfreport = st.sidebar.selectbox(
+                "내담자의 자기보고 데이터를 선택하세요:",
+                options=list(SELF_REPORTS_DICT.keys()),
+                format_func=lambda x: SELF_REPORTS_DICT[int(x)]["label"],
+                key="selfreport_select",
+                index=st.session_state.selected_selfreport_MI,
             )
 
-        # Client self-reports data
-        st.sidebar.markdown("### 자기보고 데이터 선택")
-        selected_selfreport = st.sidebar.selectbox(
-            "내담자의 자기보고 데이터를 선택하세요:",
-            options=list(SELF_REPORTS_DICT.keys()),
-            format_func=lambda x: SELF_REPORTS_DICT[int(x)]["label"],
-            key="selfreport_select",
-            index=st.session_state.selected_selfreport_MI,
-        )
+            if selected_selfreport != st.session_state.selected_selfreport_MI:
+                st.session_state.selected_selfreport_MI = selected_selfreport
+                self_reports_s = SELF_REPORTS_DICT[selected_selfreport]
+                st.session_state.messages_MI = []
+                st.session_state.MI_chatbot = None
 
-        if selected_selfreport != st.session_state.selected_selfreport_MI:
-            st.session_state.selected_selfreport_MI = selected_selfreport
-            self_reports_s = SELF_REPORTS_DICT[selected_selfreport]
-            st.session_state.messages_MI = []
-            st.session_state.MI_chatbot = None
-
-        if st.sidebar.button("선택한 자기보고 데이터 보기"):
-            data_to_modal(
-                json.dumps(
-                    SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
-                    ensure_ascii=False,
+            if st.sidebar.button("선택한 자기보고 데이터 보기"):
+                data_to_modal(
+                    json.dumps(
+                        SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
+                        ensure_ascii=False,
+                    )
                 )
-            )
 
-        # Session notes (only viewing for now)
-        st.sidebar.markdown("### 지난 회기 기록")
-        st.sidebar.button(
-            "지난 회기 기록 보기",
-            on_click=data_to_modal,
-            args=(json.dumps(session_notes, ensure_ascii=False),),
-        )
+            # Session notes (only viewing for now)
+            st.sidebar.markdown("### 지난 회기 기록")
+            st.sidebar.button(
+                "지난 회기 기록 보기",
+                on_click=data_to_modal,
+                args=(json.dumps(session_notes, ensure_ascii=False),),
+            )
+        else:
+            st.sidebar.markdown("(비활성)")
 
         # Initial prompt selection area
         st.sidebar.markdown("## 챗봇 첫 메시지 선택")
@@ -258,36 +261,37 @@ def main():
         st.sidebar.markdown("### 변화단계")
         st.sidebar.markdown(f"{STAGE_DICT[st.session_state.stage]}")
 
-        st.sidebar.markdown("### 온보딩 데이터")
-        st.sidebar.markdown(
-            f"{ONBOARDING_DICT[st.session_state.selected_onboarding_MI]['label']}"
-        )
-        st.sidebar.button(
-            "온보딩 데이터 보기",
-            on_click=data_to_modal,
-            args=(
-                json.dumps(
-                    ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
-                    ensure_ascii=False,
+        if st.session_state.system_prompt_ver_MI == 1:
+            st.sidebar.markdown("### 온보딩 데이터")
+            st.sidebar.markdown(
+                f"{ONBOARDING_DICT[st.session_state.selected_onboarding_MI]['label']}"
+            )
+            st.sidebar.button(
+                "온보딩 데이터 보기",
+                on_click=data_to_modal,
+                args=(
+                    json.dumps(
+                        ONBOARDING_DICT[st.session_state.selected_onboarding_MI],
+                        ensure_ascii=False,
+                    ),
                 ),
-            ),
-        )
+            )
 
-        st.sidebar.markdown("### 자기보고 데이터")
-        st.sidebar.markdown(
-            f"{SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI]['label']}"
-        )
+            st.sidebar.markdown("### 자기보고 데이터")
+            st.sidebar.markdown(
+                f"{SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI]['label']}"
+            )
 
-        st.sidebar.button(
-            "자기보고 데이터 보기",
-            on_click=data_to_modal,
-            args=(
-                json.dumps(
-                    SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
-                    ensure_ascii=False,
+            st.sidebar.button(
+                "자기보고 데이터 보기",
+                on_click=data_to_modal,
+                args=(
+                    json.dumps(
+                        SELF_REPORTS_DICT[st.session_state.selected_selfreport_MI],
+                        ensure_ascii=False,
+                    ),
                 ),
-            ),
-        )
+            )
 
         st.sidebar.markdown("### 시작 시간")
         st.sidebar.markdown(
