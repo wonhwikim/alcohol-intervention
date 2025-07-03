@@ -60,8 +60,6 @@ def initialize_session_states():
         with open("json/example_notes.json", "rt", encoding="utf-8") as f:
             data = json.load(f)
             st.session_state.session_series = {i: data[i] for i in range(len(data))}
-        # Debug
-        print("Session series loaded:", st.session_state.session_series)
 
     if "session_notes" not in st.session_state:
         if st.session_state.session_series != {}:
