@@ -146,14 +146,14 @@ SELF_REPORT_EMPTY = {
 }
 
 
-@st.dialog("text", width="large")
-def data_to_modal(data: str):
+@st.dialog("💾 데이터 보기", width="large")
+def display_data(data: str):
     """Display the selected onboarding data in a modal dialog"""
     st.markdown("# 데이터 보기")
     st.json(data, expanded=True)
 
 
-@st.dialog("text", width="large")
+@st.dialog("➕ 데이터 추가", width="large")
 def add_custom_data(category: str):
     if category == "onboarding":
         st.markdown("# 온보딩 데이터 추가")
@@ -305,7 +305,7 @@ def main():
 
             # Button to view selected onboarding data - display data in a modal
             if st.sidebar.button("선택한 온보딩 데이터 보기"):
-                data_to_modal(
+                display_data(
                     json.dumps(
                         st.session_state.onboardings[
                             st.session_state.selected_onboarding_MI
@@ -335,7 +335,7 @@ def main():
                 st.session_state.MI_chatbot = None
 
             if st.sidebar.button("선택한 자기보고 데이터 보기"):
-                data_to_modal(
+                display_data(
                     json.dumps(
                         st.session_state.self_reports[
                             st.session_state.selected_selfreport_MI
@@ -371,7 +371,7 @@ def main():
 
             st.sidebar.button(
                 "지난 회기 기록 보기",
-                on_click=data_to_modal,
+                on_click=display_data,
                 args=(json.dumps(st.session_state.session_notes, ensure_ascii=False),),
             )
         else:
@@ -417,7 +417,7 @@ def main():
             )
             st.sidebar.button(
                 "온보딩 데이터 보기",
-                on_click=data_to_modal,
+                on_click=display_data,
                 args=(
                     json.dumps(
                         st.session_state.onboardings[
@@ -435,7 +435,7 @@ def main():
 
             st.sidebar.button(
                 "자기보고 데이터 보기",
-                on_click=data_to_modal,
+                on_click=display_data,
                 args=(
                     json.dumps(
                         st.session_state.self_reports[
@@ -486,9 +486,13 @@ def main():
     if prompt:
         timestamp = datetime.datetime.now()
         elapsed_time = timestamp - st.session_state.start_time_MI
-        elapsed_minutes = int(elapsed_time.total_seconds() / 60)
+        elapsed_minutes = int(elapsed_time.total_seconds() // 60)
         elapsed_seconds = int(elapsed_time.total_seconds() % 60)
-        elapsed_time_message = f"\n[Total elapsed time: {elapsed_minutes} minutes.]"
+        elapsed_time_message = (
+            f"\n[Total elapsed time: {elapsed_minutes} minutes.]"
+            if elapsed_minutes >= 14
+            else ""
+        )
 
         st.session_state.messages_MI.append(
             {"role": "user", "content": prompt, "timestamp": timestamp}
@@ -503,6 +507,15 @@ def main():
             )
 
         with st.chat_message("assistant"):
+
+            onboarding_data_s = json.dumps(
+                st.session_state.onboardings[st.session_state.selected_onboarding_MI][
+                    "data"
+                ]
+            )
+            self_reports_s = json.dumps(
+                st.session_state.self_reports[st.session_state.selected_selfreport_MI]
+            )
 
             payload = {
                 "STAGE": STAGE_DICT.get(st.session_state.stage, "UNKNOWN"),
