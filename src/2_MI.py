@@ -44,6 +44,10 @@ def initialize_session_states():
     if "selected_session_notes" not in st.session_state:
         st.session_state.selected_session_notes = 0
 
+    # Load data from json files - onboarding data, self-reports, and session notes
+    # Each json file is structured as a list of dictionaries
+    # Convert each list to dictionary for easier access
+
     if "onboardings" not in st.session_state:
         with open("json/example_onboarding.json", "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -74,11 +78,6 @@ def initialize_session_states():
     return
 
 
-# Load data from json files - onboarding data, self-reports, and session notes
-# Each json file is structured as a list of dictionaries
-# Convert each list to dictionary for easier access
-
-
 # Define dictionaries for stages, versions, and initial prompts
 STAGE_DICT = {
     1: "고려전 (Precontemplation)",
@@ -89,9 +88,10 @@ STAGE_DICT = {
     6: "종결 (Termination)",
 }
 
-VERSION_DICT = {
+SYSTEM_PROMPT_DICT = {
     0: "V5 (V4 수정 + Guardrail)",
     1: "V6 (4판 기반 + 내담자 데이터 + Guardrail)",
+    2: "V7 (V6 개선)",
 }
 
 INITIAL_PROMPT_DICT = {
@@ -255,8 +255,8 @@ def main():
 
         selected_system_prompt = st.sidebar.radio(
             "테스트할 프롬프트 버전을 선택하세요:",
-            options=list(VERSION_DICT.keys()),
-            format_func=lambda x: VERSION_DICT[x],
+            options=list(SYSTEM_PROMPT_DICT.keys()),
+            format_func=lambda x: SYSTEM_PROMPT_DICT[x],
             key="version_select",
             index=st.session_state.system_prompt_ver_MI,
         )
@@ -283,8 +283,8 @@ def main():
             st.session_state.messages_MI = []
             st.session_state.MI_chatbot = None
 
-        st.sidebar.markdown("## 내담자 데이터 선택 (V6 전용)")
-        if st.session_state.system_prompt_ver_MI == 1:
+        st.sidebar.markdown("## 내담자 데이터 선택 (V6 이상)")
+        if st.session_state.system_prompt_ver_MI != 0:
             # Client data selection area
             # Client onboarding data
             st.sidebar.markdown("### 온보딩 데이터")
@@ -405,7 +405,9 @@ def main():
     else:  # After session has started
         st.sidebar.markdown("## 현재 대화 설정")
         st.sidebar.markdown(f"### 프롬프트 버전")
-        st.sidebar.markdown(f"{VERSION_DICT[st.session_state.system_prompt_ver_MI]}")
+        st.sidebar.markdown(
+            f"{SYSTEM_PROMPT_DICT[st.session_state.system_prompt_ver_MI]}"
+        )
 
         st.sidebar.markdown("### 변화단계")
         st.sidebar.markdown(f"{STAGE_DICT[st.session_state.stage]}")
@@ -519,11 +521,11 @@ def main():
 
             payload = {
                 "STAGE": STAGE_DICT.get(st.session_state.stage, "UNKNOWN"),
-                "ONBOARDING-DATA": onboarding_data_s,
-                "SELF-REPORTS": self_reports_s,
-                "SESSION-NUMBER": st.session_state.session_number,
-                "SESSION-NOTES": st.session_state.session_notes,
-                "SESSION-DATE": st.session_state.start_time_MI.strftime("%Y-%m-%d"),
+                "ONBOARDING_DATA": onboarding_data_s,
+                "SELF_REPORTS": self_reports_s,
+                "SESSION_NUMBER": st.session_state.session_number,
+                "SESSION_NOTES": st.session_state.session_notes,
+                "SESSION_DATE": st.session_state.start_time_MI.strftime("%Y-%m-%d"),
             }
 
             # print(payload)
@@ -555,3 +557,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# 안전성 문구
+# 앱 사용...

@@ -16,11 +16,22 @@ MI_PROMPT_DICT = {
         "prompt": MI_V6_PROMPT,
         "keylist": [
             "STAGE",
-            "ONBOARDING-DATA",
-            "SELF-REPORTS",
-            "SESSION-NUMBER",
-            "SESSION-NOTES",
-            "SESSION-DATE",
+            "ONBOARDING_DATA",
+            "SELF_REPORTS",
+            "SESSION_NUMBER",
+            "SESSION_NOTES",
+            "SESSION_DATE",
+        ],
+    },
+    2: {
+        "prompt": MI_V7_PROMPT,
+        "keylist": [
+            "STAGE",
+            "ONBOARDING_DATA",
+            "SELF_REPORTS",
+            "SESSION_NUMBER",
+            "SESSION_NOTES",
+            "SESSION_DATE",
         ],
     },
 }
