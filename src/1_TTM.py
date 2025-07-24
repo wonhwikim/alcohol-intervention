@@ -30,7 +30,7 @@ def initialize_TTM_chatbot(prompt_version: int) -> None:
 
     # Add initial message from TTM_chatbot if not present
     if not st.session_state.messages_TTM:
-        initial_message = "안녕하세요, 저는 오늘 당신의 음주 습관에 대해 이야기해보고자 합니다. 현재의 음주 습관이 걱정되거나, 변화가 필요하다고 생각하시나요?"
+        initial_message = "안녕하세요, 오늘은 내담자님의 음주 습관에 대해 이야기해보고자 합니다. 현재의 음주 습관이 걱정되거나, 변화가 필요하다고 생각하시나요?"
         st.session_state.messages_TTM.append(
             {"role": "assistant", "content": initial_message}
         )

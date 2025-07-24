@@ -1360,13 +1360,13 @@ Systematically assess the client's stage of change regarding alcohol use using t
 
 STAGE_RESULT: [STAGE_NAME]
 
-where [STAGE_NAME] should be one of the following, without any modifications including quotation marks:
-  - 고려전 (Precontemplation)
-  - 고려 (Contemplation)
-  - 준비 (Preparation)
-  - 실천 (Action)
-  - 유지 (Maintenance)
-  - 종결 (Termination)"""
+[STAGE_NAME] should be in Korean following the translation for each stage as written below, without any modifications including quotation marks:
+  - Precontemplation → 고려전단계
+  - Contemplation → 고려단계
+  - Preparation → 준비단계
+  - Action → 실천단계
+  - Maintenance → 유지단계
+  - Termination → 종결단계"""
 
 
 MI_V5_PROMPT = "\n\n".join(
